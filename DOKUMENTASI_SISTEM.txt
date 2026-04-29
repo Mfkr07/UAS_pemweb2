@@ -1,0 +1,322 @@
+================================================================================
+  SISTEM MANAJEMEN SARANA DAN PRASARANA DESA X
+  Dokumentasi Proyek untuk Tim Pengembang
+================================================================================
+
+Dibuat oleh   : Tim Pengembang
+Tanggal       : 29 April 2026
+Framework     : Laravel 11
+Database      : MySQL (Lokal) / PostgreSQL via Supabase (Production)
+Deployment    : Vercel
+
+--------------------------------------------------------------------------------
+DAFTAR ISI
+--------------------------------------------------------------------------------
+  1. Gambaran Umum Sistem
+  2. Tech Stack & Dependensi
+  3. Struktur Direktori Penting
+  4. Konfigurasi Awal (Setup)
+  5. Akun Pengguna Default
+  6. Fitur & Alur Sistem
+  7. Struktur Database (ERD Singkat)
+  8. Penjelasan Routes & Controller
+  9. Catatan Deployment ke Vercel + Supabase
+ 10. Hal yang Belum Selesai / Next Steps
+
+--------------------------------------------------------------------------------
+1. GAMBARAN UMUM SISTEM
+--------------------------------------------------------------------------------
+
+Sistem ini adalah aplikasi web berbasis Laravel untuk mengelola inventaris
+sarana dan prasarana (aset) milik desa. Terdapat dua peran pengguna:
+
+  - ADMIN (Admin Desa)  : Dapat melakukan CRUD penuh terhadap semua data.
+  - VIEWER (Kepala Desa): Hanya dapat melihat data (read-only).
+
+Fitur utama:
+  - Manajemen Kategori aset (Gedung, Kendaraan, dll.)
+  - Manajemen Aset (nama, lokasi, kondisi, foto, tanggal perolehan)
+  - Pencatatan Riwayat Pemeliharaan per aset (biaya, status, tanggal)
+  - Dashboard statistik untuk Admin dan Viewer
+
+--------------------------------------------------------------------------------
+2. TECH STACK & DEPENDENSI
+--------------------------------------------------------------------------------
+
+Backend:
+  - PHP 8.2+
+  - Laravel 11
+  - Laravel Breeze (Autentikasi)
+
+Frontend:
+  - Blade Templating Engine
+  - Tailwind CSS v3
+  - Alpine.js (untuk interaksi UI ringan seperti sidebar mobile)
+  - Vite (asset bundler)
+
+Database:
+  - Lokal  : MySQL
+  - Produksi: PostgreSQL (Supabase)
+
+Deployment:
+  - Vercel (via vercel.json + api/index.php)
+
+--------------------------------------------------------------------------------
+3. STRUKTUR DIREKTORI PENTING
+--------------------------------------------------------------------------------
+
+  app/
+  ├── Http/
+  │   ├── Controllers/
+  │   │   ├── AdminController.php           <- Dashboard admin
+  │   │   ├── AssetController.php           <- CRUD Aset
+  │   │   ├── CategoryController.php        <- CRUD Kategori
+  │   │   └── MaintenanceLogController.php  <- CRUD Log Pemeliharaan
+  │   └── Middleware/
+  │       └── RoleMiddleware.php            <- Cek role admin/viewer
+  ├── Models/
+  │   ├── User.php
+  │   ├── Category.php
+  │   ├── Asset.php
+  │   └── MaintenanceLog.php
+
+  database/
+  ├── migrations/
+  │   ├── ..._create_categories_table.php
+  │   ├── ..._create_assets_table.php
+  │   └── ..._create_maintenance_logs_table.php
+  └── seeders/
+      └── DatabaseSeeder.php                <- Data awal (user, kategori, aset, log)
+
+  resources/views/
+  ├── layouts/
+  │   ├── app.blade.php                     <- Layout utama (wrapper)
+  │   └── sidebar.blade.php                 <- Komponen sidebar navigasi
+  ├── admin/
+  │   ├── dashboard.blade.php
+  │   ├── categories/ (index, create, edit)
+  │   ├── assets/     (index, create, edit, show)
+  │   └── maintenance/(index, create, edit)
+  └── viewer/
+      └── dashboard.blade.php               <- Dashboard khusus Viewer
+
+  routes/web.php                            <- Semua definisi rute
+
+  vercel.json                               <- Konfigurasi deployment Vercel
+  api/index.php                             <- Entry point untuk Vercel
+
+--------------------------------------------------------------------------------
+4. KONFIGURASI AWAL (SETUP) - LOKAL
+--------------------------------------------------------------------------------
+
+Langkah-langkah menjalankan project di komputer lokal:
+
+  1. Clone/copy folder project ke komputer Anda.
+
+  2. Install dependensi PHP:
+       composer install
+
+  3. Install dependensi Node.js:
+       npm install
+
+  4. Salin file environment:
+       cp .env.example .env
+
+  5. Generate application key:
+       php artisan key:generate
+
+  6. Konfigurasi database di file .env:
+       DB_CONNECTION=mysql
+       DB_HOST=127.0.0.1
+       DB_PORT=3306
+       DB_DATABASE=sarana_prasarana   <- sesuaikan nama database Anda
+       DB_USERNAME=root
+       DB_PASSWORD=                   <- sesuaikan password Anda
+
+  7. Buat database baru di MySQL dengan nama yang sesuai.
+
+  8. Jalankan migrasi dan seeder:
+       php artisan migrate --seed
+
+  9. Buat symbolic link untuk storage (agar foto aset bisa diakses):
+       php artisan storage:link
+
+  10. Build assets frontend:
+        npm run build
+        (atau gunakan: npm run dev  untuk mode development dengan hot-reload)
+
+  11. Jalankan server:
+        php artisan serve
+
+  12. Buka browser ke: http://localhost:8000
+
+--------------------------------------------------------------------------------
+5. AKUN PENGGUNA DEFAULT
+--------------------------------------------------------------------------------
+
+  Role    | Email              | Password
+  --------|--------------------|----------
+  Admin   | admin@desa.com     | password
+  Viewer  | kepala@desa.com    | password
+
+  PENTING: Ganti password sebelum deploy ke production!
+
+--------------------------------------------------------------------------------
+6. FITUR & ALUR SISTEM
+--------------------------------------------------------------------------------
+
+[ LOGIN ]
+  - Semua pengguna masuk melalui halaman /login.
+  - Setelah login, diarahkan ke /dashboard (route default).
+  - RoleMiddleware otomatis memeriksa role dan mengarahkan ke halaman yang benar.
+
+[ SIDEBAR NAVIGASI ]
+  - Dashboard    : Beranda berisi statistik.
+  - Kategori     : Manajemen kategori aset (hanya admin bisa CRUD).
+  - Manajemen Aset: Daftar semua aset desa (viewer bisa lihat, admin bisa ubah).
+  - Pemeliharaan : Riwayat semua perbaikan/perawatan aset.
+
+[ ALUR PENCATATAN ASET BARU ]
+  1. Admin buka halaman "Manajemen Aset".
+  2. Klik tombol "+ Tambah Aset".
+  3. Isi form (nama, kategori, kondisi, lokasi, foto, tanggal perolehan).
+  4. Submit -> data tersimpan di tabel "assets".
+
+[ ALUR CATAT PEMELIHARAAN ]
+  1. Admin buka halaman "Pemeliharaan" ATAU halaman detail aset.
+  2. Klik "+ Catat Pemeliharaan".
+  3. Pilih aset terkait, isi deskripsi, biaya, status, tanggal.
+  4. Submit -> data tersimpan di tabel "maintenance_logs".
+
+[ KONDISI ASET ]
+  Tersedia 3 kondisi yang bisa dipilih:
+  - Baik         (badge hijau)
+  - Rusak Ringan (badge kuning/amber)
+  - Rusak Berat  (badge merah)
+
+[ STATUS PEMELIHARAAN ]
+  Tersedia 3 status:
+  - Planned   (dijadwalkan)
+  - Ongoing   (sedang berlangsung)
+  - Completed (selesai)
+
+--------------------------------------------------------------------------------
+7. STRUKTUR DATABASE (ERD SINGKAT)
+--------------------------------------------------------------------------------
+
+  users
+  ├── id (PK)
+  ├── name
+  ├── email (unique)
+  ├── password
+  └── role  [admin | viewer]
+
+  categories
+  ├── id (PK)
+  ├── name
+  └── description
+
+  assets
+  ├── id (PK)
+  ├── category_id (FK -> categories.id)
+  ├── name
+  ├── description
+  ├── condition   [baik | rusak_ringan | rusak_berat]
+  ├── acquisition_date
+  ├── location
+  └── photo_url
+
+  maintenance_logs
+  ├── id (PK)
+  ├── asset_id (FK -> assets.id)
+  ├── maintenance_date
+  ├── description
+  ├── cost
+  └── status  [planned | ongoing | completed]
+
+  Relasi:
+    categories  1---*  assets
+    assets      1---*  maintenance_logs
+
+--------------------------------------------------------------------------------
+8. PENJELASAN ROUTES & CONTROLLER
+--------------------------------------------------------------------------------
+
+File: routes/web.php
+
+  Rute read-only (bisa diakses Admin DAN Viewer):
+    GET  /admin/categories          -> CategoryController@index
+    GET  /admin/categories/{id}     -> CategoryController@show
+    GET  /admin/assets              -> AssetController@index
+    GET  /admin/assets/{id}         -> AssetController@show
+    GET  /admin/maintenance         -> MaintenanceLogController@index
+    GET  /admin/maintenance/{id}    -> MaintenanceLogController@show
+
+  Rute write (hanya bisa diakses Admin, dilindungi middleware role:admin):
+    GET/POST /admin/assets/create   -> AssetController@create / store
+    GET/PUT  /admin/assets/{id}/edit-> AssetController@edit / update
+    DELETE   /admin/assets/{id}     -> AssetController@destroy
+    (idem untuk categories dan maintenance)
+
+  Middleware yang digunakan:
+    - auth           : Harus login (dari Laravel Breeze)
+    - role:admin     : Hanya untuk role admin (dari RoleMiddleware.php)
+
+--------------------------------------------------------------------------------
+9. DEPLOYMENT KE VERCEL + SUPABASE
+--------------------------------------------------------------------------------
+
+File yang sudah disiapkan:
+  - vercel.json         : Konfigurasi serverless function untuk Vercel
+  - api/index.php       : Entry point PHP untuk Vercel
+
+Langkah deployment:
+  1. Buat project di Supabase (https://supabase.com)
+     - Pilih region terdekat (Singapore).
+     - Salin kredensial PostgreSQL dari Settings -> Database.
+
+  2. Ubah .env untuk production:
+       DB_CONNECTION=pgsql
+       DB_HOST=<host-supabase>
+       DB_PORT=5432
+       DB_DATABASE=postgres
+       DB_USERNAME=postgres
+       DB_PASSWORD=<password-supabase>
+
+  3. Jalankan migrasi ke Supabase:
+       php artisan migrate --seed
+
+  4. Push ke GitHub, lalu connect repo ke Vercel.
+
+  5. Set environment variables di Vercel Dashboard:
+       APP_KEY, DB_CONNECTION, DB_HOST, DB_DATABASE, DB_USERNAME, DB_PASSWORD,
+       APP_URL (sesuaikan dengan domain Vercel Anda)
+
+  6. Deploy!
+
+  CATATAN: Untuk file upload (foto aset), Vercel bersifat serverless dan tidak
+  memiliki persistent filesystem. Pertimbangkan untuk migrasi storage foto ke
+  Supabase Storage atau AWS S3 menggunakan Laravel Filesystem Disk.
+
+--------------------------------------------------------------------------------
+10. HAL YANG BELUM SELESAI / NEXT STEPS
+--------------------------------------------------------------------------------
+
+  [ ] Migrasi penyimpanan foto ke Supabase Storage / S3
+      (saat ini foto disimpan di server lokal via storage/app/public)
+
+  [ ] Penambahan fitur pencarian/search di halaman index aset dan pemeliharaan
+
+  [ ] Ekspor laporan ke PDF atau Excel (menggunakan DomPDF / Maatwebsite Excel)
+
+  [ ] Notifikasi email / alert ketika aset berstatus "Rusak Berat"
+
+  [ ] Implementasi soft-delete agar data yang dihapus bisa dipulihkan
+
+  [ ] Unit testing & Feature testing
+
+  [ ] Ganti password user default sebelum production!
+
+================================================================================
+  Untuk pertanyaan lebih lanjut, lihat kode sumber di folder project ini.
+================================================================================
