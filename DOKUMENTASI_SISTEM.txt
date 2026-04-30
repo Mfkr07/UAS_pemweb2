@@ -5,7 +5,7 @@
 
 Dibuat oleh   : Tim Pengembang
 Tanggal       : 29 April 2026
-Framework     : Laravel 11
+Framework     : Laravel 12 (v12.58.0)
 Database      : MySQL (Lokal) / PostgreSQL via Supabase (Production)
 Deployment    : Vercel
 
@@ -44,8 +44,8 @@ Fitur utama:
 --------------------------------------------------------------------------------
 
 Backend:
-  - PHP 8.2+
-  - Laravel 11
+  - PHP 8.2+ (Tim pengembang menggunakan PHP 8.4 — kompatibel penuh)
+  - Laravel 12 (v12.58.0)
   - Laravel Breeze (Autentikasi)
 
 Frontend:
