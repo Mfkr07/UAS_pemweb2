@@ -1,7 +1,6 @@
 <?php
 
 // Set the base path for Laravel
-define('LARAVEL_START', microtime(true));
 
 // Set the app base path so Laravel knows where it lives
 $_ENV['APP_BASE_PATH'] = dirname(__DIR__);
