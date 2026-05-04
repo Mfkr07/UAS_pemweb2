@@ -3,22 +3,63 @@
 namespace App\Http\Controllers;
 
 use App\Models\Asset;
+use App\Models\Category;
 use App\Models\MaintenanceLog;
 use Illuminate\Http\Request;
+use App\Exports\MaintenanceLogsExport;
+use Maatwebsite\Excel\Facades\Excel;
+use Barryvdh\DomPDF\Facade\Pdf;
 
 class MaintenanceLogController extends Controller
 {
-    public function index(Request $request)
+    private function buildQuery(Request $request)
     {
-        $query = MaintenanceLog::with('asset')->latest('maintenance_date');
+        $query = MaintenanceLog::with('asset.category')->latest('maintenance_date');
         
         if ($request->has('status') && $request->status != '') {
             $query->where('status', $request->status);
         }
 
-        $logs = $query->paginate(10);
+        if ($request->has('start_date') && $request->start_date != '') {
+            $query->whereDate('maintenance_date', '>=', $request->start_date);
+        }
 
-        return view('admin.maintenance.index', compact('logs'));
+        if ($request->has('end_date') && $request->end_date != '') {
+            $query->whereDate('maintenance_date', '<=', $request->end_date);
+        }
+
+        if ($request->has('category_id') && $request->category_id != '') {
+            $query->whereHas('asset', function ($q) use ($request) {
+                $q->where('category_id', $request->category_id);
+            });
+        }
+
+        return $query;
+    }
+
+    public function index(Request $request)
+    {
+        $query = $this->buildQuery($request);
+        $logs = $query->paginate(10)->withQueryString();
+        $categories = Category::all();
+
+        return view('admin.maintenance.index', compact('logs', 'categories'));
+    }
+
+    public function exportPdf(Request $request)
+    {
+        $logs = $this->buildQuery($request)->get();
+        
+        $pdf = Pdf::loadView('admin.maintenance.pdf', compact('logs'));
+        
+        return $pdf->download('Laporan_Pemeliharaan_' . date('Y-m-d') . '.pdf');
+    }
+
+    public function exportExcel(Request $request)
+    {
+        $logs = $this->buildQuery($request)->get();
+
+        return Excel::download(new MaintenanceLogsExport($logs), 'Laporan_Pemeliharaan_' . date('Y-m-d') . '.xlsx');
     }
 
     public function create(Request $request)

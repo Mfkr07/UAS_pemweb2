@@ -34,6 +34,11 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::prefix('admin')->name('admin.')->group(function () {
         Route::resource('categories', CategoryController::class)->only(['index', 'show']);
         Route::resource('assets', \App\Http\Controllers\AssetController::class)->only(['index', 'show']);
+        
+        // Maintenance Exports
+        Route::get('maintenance/export-pdf', [\App\Http\Controllers\MaintenanceLogController::class, 'exportPdf'])->name('maintenance.export_pdf');
+        Route::get('maintenance/export-excel', [\App\Http\Controllers\MaintenanceLogController::class, 'exportExcel'])->name('maintenance.export_excel');
+        
         Route::resource('maintenance', \App\Http\Controllers\MaintenanceLogController::class)->only(['index', 'show']);
     });
 
