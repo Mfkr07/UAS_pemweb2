@@ -1,6 +1,6 @@
 <x-app-layout>
     <x-slot name="header">
-        <h2 class="font-bold text-2xl text-gray-900 tracking-tight">
+        <h2 class="font-semibold text-xl text-gray-800 leading-tight">
             {{ __('Riwayat Pemeliharaan') }}
         </h2>
     </x-slot>
@@ -38,10 +38,10 @@
                     <!-- Date Range Filter -->
                     <div class="w-full">
                         <label class="block text-xs font-bold text-gray-500 uppercase tracking-wider mb-2">Rentang Tanggal</label>
-                        <div class="flex flex-col sm:flex-row items-center gap-3">
-                            <input type="date" name="start_date" value="{{ request('start_date') }}" class="w-full border-gray-300 focus:border-indigo-500 focus:ring-indigo-500 rounded-xl shadow-sm bg-white/70 text-sm py-2.5">
-                            <span class="text-gray-400 font-medium">-</span>
-                            <input type="date" name="end_date" value="{{ request('end_date') }}" class="w-full border-gray-300 focus:border-indigo-500 focus:ring-indigo-500 rounded-xl shadow-sm bg-white/70 text-sm py-2.5">
+                        <div class="flex items-center gap-3">
+                            <input type="date" name="start_date" value="{{ request('start_date') }}" class="flex-1 border-gray-300 focus:border-indigo-500 focus:ring-indigo-500 rounded-xl shadow-sm bg-white/70 text-sm py-2.5">
+                            <span class="text-gray-400 font-medium flex-shrink-0">-</span>
+                            <input type="date" name="end_date" value="{{ request('end_date') }}" class="flex-1 border-gray-300 focus:border-indigo-500 focus:ring-indigo-500 rounded-xl shadow-sm bg-white/70 text-sm py-2.5">
                         </div>
                     </div>
 

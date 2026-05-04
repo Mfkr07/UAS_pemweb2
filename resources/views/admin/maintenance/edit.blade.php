@@ -1,3 +1,7 @@
+@php
+    /** @var \App\Models\MaintenanceLog $maintenance */
+    /** @var \Illuminate\Database\Eloquent\Collection<int, \App\Models\Asset> $assets */
+@endphp
 <x-app-layout>
     <x-slot name="header">
         <h2 class="font-semibold text-xl text-gray-800 leading-tight">
@@ -20,7 +24,7 @@
                                 <option value="">Pilih Aset</option>
                                 @foreach($assets as $asset)
                                     <option value="{{ $asset->id }}" {{ old('asset_id', $maintenance->asset_id) == $asset->id ? 'selected' : '' }}>
-                                        {{ $asset->name }} ({{ $asset->category->name }})
+                                        {{ $asset->name }} ({{ $asset->category?->name ?? 'Tanpa Kategori' }})
                                     </option>
                                 @endforeach
                             </select>

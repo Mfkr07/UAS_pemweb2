@@ -64,7 +64,7 @@ class MaintenanceLogController extends Controller
 
     public function create(Request $request)
     {
-        $assets = Asset::all();
+        $assets = Asset::with('category')->get();
         $selectedAsset = $request->query('asset_id');
         return view('admin.maintenance.create', compact('assets', 'selectedAsset'));
     }
@@ -91,7 +91,7 @@ class MaintenanceLogController extends Controller
 
     public function edit(MaintenanceLog $maintenance)
     {
-        $assets = Asset::all();
+        $assets = Asset::with('category')->get();
         return view('admin.maintenance.edit', compact('maintenance', 'assets'));
     }
 

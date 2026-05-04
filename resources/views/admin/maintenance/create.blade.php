@@ -19,7 +19,7 @@
                                 <option value="">Pilih Aset</option>
                                 @foreach($assets as $asset)
                                     <option value="{{ $asset->id }}" {{ (old('asset_id') == $asset->id || $selectedAsset == $asset->id) ? 'selected' : '' }}>
-                                        {{ $asset->name }} ({{ $asset->category->name }})
+                                        {{ $asset->name }} ({{ $asset->category?->name ?? 'Tanpa Kategori' }})
                                     </option>
                                 @endforeach
                             </select>
