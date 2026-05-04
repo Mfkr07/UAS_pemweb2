@@ -1,31 +1,14 @@
 <?php
 
-/**
- * Laravel - A PHP Framework For Web Artisans
- *
- * @package  Laravel
- * @author   Taylor Otwell <taylor@laravel.com>
- */
+// Set the base path for Laravel
+define('LARAVEL_START', microtime(true));
 
-$app = require __DIR__.'/../bootstrap/app.php';
+// Set the app base path so Laravel knows where it lives
+$_ENV['APP_BASE_PATH'] = dirname(__DIR__);
 
-/*
-|--------------------------------------------------------------------------
-| Run The Application
-|--------------------------------------------------------------------------
-|
-| Once we have the application, we can handle the incoming request using
-| the application's HTTP kernel. Then, we will send the response back
-| to this client's browser, allowing them to enjoy our application.
-|
-*/
+// Vercel runs from the /api directory, so we need to
+// tell PHP where the document root actually is
+$_SERVER['DOCUMENT_ROOT'] = dirname(__DIR__) . '/public';
 
-$kernel = $app->make(Illuminate\Contracts\Http\Kernel::class);
-
-$response = $kernel->handle(
-    $request = Illuminate\Http\Request::capture()
-);
-
-$response->send();
-
-$kernel->terminate($request, $response);
+// Forward all requests to Laravel's public/index.php
+require dirname(__DIR__) . '/public/index.php';
