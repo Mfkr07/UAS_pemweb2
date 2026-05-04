@@ -48,7 +48,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
             $totalCategories = \App\Models\Category::count();
             $totalAssets = \App\Models\Asset::count();
             $recentMaintenance = \App\Models\MaintenanceLog::with('asset')->latest('maintenance_date')->take(5)->get();
-            $assetConditionStats = \App\Models\Asset::selectRaw('`condition`, count(*) as total')->groupBy('condition')->get();
+            $assetConditionStats = \App\Models\Asset::selectRaw('"condition", count(*) as total')->groupBy('condition')->get();
 
             return view('viewer.dashboard', compact('totalCategories', 'totalAssets', 'recentMaintenance', 'assetConditionStats'));
         })->name('dashboard');
