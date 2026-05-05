@@ -13,7 +13,7 @@ class AdminController extends Controller
         $totalMaintenance = \App\Models\MaintenanceLog::count();
 
         // Sample data for charts
-        $assetConditionStats = \App\Models\Asset::selectRaw('"condition", count(*) as total')->groupBy('condition')->get();
+        $assetConditionStats = \App\Models\Asset::select('condition', \DB::raw('count(*) as total'))->groupBy('condition')->get();
 
         return view('admin.dashboard', compact('totalCategories', 'totalAssets', 'totalMaintenance', 'assetConditionStats'));
     }}
