@@ -1,0 +1,110 @@
+================================================================
+          PANDUAN PENJELASAN KODE: APLIKASI SARANA PRASARANA
+================================================================
+
+Dokumen ini berisi panduan lengkap mengenai struktur, alur, dan 
+logika kode aplikasi Sarana Prasarana. Gunakan dokumen ini sebagai 
+bahan belajar sebelum tes/sidang.
+
+----------------------------------------------------------------
+1. TEKNOLOGI YANG DIGUNAKAN (TECH STACK)
+----------------------------------------------------------------
+- Framework: Laravel 11 (PHP 8.2+)
+- Database: PostgreSQL (Supabase) untuk production, SQLite/MySQL untuk local.
+- Frontend: Blade Templating Engine + Tailwind CSS.
+- Fitur Ekspor: 
+  * `barryvdh/laravel-dompdf` (untuk Cetak PDF)
+  * `maatwebsite/excel` (untuk Ekspor Excel)
+- Deployment: Vercel (Serverless) dengan penyesuaian `api/index.php`.
+
+
+----------------------------------------------------------------
+2. STRUKTUR DATABASE (MODEL & RELASI)
+----------------------------------------------------------------
+Ada 4 tabel/model utama dalam aplikasi ini:
+
+A. User (Tabel: users)
+- Menyimpan data pengguna (email, password, dsb).
+- Memiliki kolom `role` untuk membedakan hak akses: 'admin' dan 'viewer'.
+
+B. Category (Tabel: categories)
+- Menyimpan nama kategori (misal: Elektronik, Kendaraan, Gedung).
+- Relasi: "One to Many" ke Asset. Satu kategori bisa memiliki banyak aset.
+  (Di model: `public function assets() { return $this->hasMany(Asset::class); }`)
+
+C. Asset (Tabel: assets)
+- Menyimpan data barang/sarana prasarana.
+- Kolom penting: name, description, photo (path file gambar), condition (baik, rusak_ringan, rusak_berat), acquisition_date.
+- Relasi: "Belongs To" ke Category. Setiap aset pasti milik satu kategori.
+- Relasi: "Has Many" ke MaintenanceLog. Satu aset bisa punya banyak riwayat pemeliharaan.
+
+D. MaintenanceLog (Tabel: maintenance_logs)
+- Menyimpan riwayat pemeliharaan/perbaikan aset.
+- Kolom penting: asset_id, maintenance_date, description, cost, status (scheduled, in_progress, completed).
+- Relasi: "Belongs To" ke Asset.
+
+
+----------------------------------------------------------------
+3. ALUR KERJA (ROUTING & MIDDLEWARE)
+----------------------------------------------------------------
+Lokasi file: `routes/web.php`
+Semua rute dilindungi oleh middleware `auth` (harus login). Setelah login, ada middleware khusus peran (role):
+
+- `admin` (Kepala Admin): 
+  Bisa melakukan semuanya (Create, Read, Update, Delete) pada Kategori, Aset, dan Pemeliharaan.
+- `viewer` (Viewer / Kepala Desa): 
+  Hanya bisa Read (Melihat) daftar Kategori, Aset, Pemeliharaan, dan melihat Dashboard Viewer, serta bisa mengunduh Laporan.
+
+Jika pengguna login, Laravel mengecek fungsi di `web.php` dan mengarahkannya ke dashboard yang sesuai berdasarkan kolom `role`.
+
+
+----------------------------------------------------------------
+4. PENJELASAN LOGIKA CONTROLLER
+----------------------------------------------------------------
+A. AssetController.php
+- `index()`: Mengambil semua data aset. Kita menggunakan `$assets = Asset::with('category')->latest()->get()`. `with('category')` disebut "Eager Loading" untuk mencegah masalah N+1 Query (agar database tidak dipanggil berulang kali saat menampilkan kategori di tabel).
+- `store()`: Menyimpan aset baru. Jika ada file foto yang diunggah (`$request->hasFile('photo')`), Laravel akan menyimpannya ke folder `storage/app/public/assets` menggunakan `store('assets', 'public')`.
+- `update()`: Memperbarui aset. Jika ada foto baru, foto lama dihapus dulu menggunakan `Storage::disk('public')->delete(...)`, baru foto baru disimpan.
+
+B. MaintenanceLogController.php
+- Menangani proses CRUD riwayat pemeliharaan. 
+- Di halaman daftar pemeliharaan, kita menggunakan relasi untuk menampilkan nama barang yang dirawat: `$log->asset->name`.
+- `exportPdf()`: Menggunakan library DOMPDF. Mengambil semua data maintenance, lalu dikirim ke sebuah file blade view `maintenance.pdf`, dan di-*render* menjadi PDF menggunakan method `download()`.
+- `exportExcel()`: Menggunakan library Maatwebsite.
+
+C. AdminController.php
+- `index()`: Mengatur Dashboard. Mengambil total barang, total kategori, dan membuat data grafik.
+- Query PostgreSQL: `Asset::selectRaw('"condition", count(*) as total')->groupBy('condition')` digunakan untuk menghitung jumlah aset berdasarkan kondisi (Baik, Rusak Ringan, Rusak Berat) agar bisa digambar di grafik (Pie Chart).
+
+
+----------------------------------------------------------------
+5. PENJELASAN TAMPILAN (UI/UX)
+----------------------------------------------------------------
+Aplikasi ini memakai gaya desain "Glassmorphism" (efek kaca buram).
+Ini dicapai menggunakan *utility classes* dari Tailwind CSS:
+- `bg-white/10` atau `bg-white/50`: Membuat latar belakang putih tapi tembus pandang (transparan).
+- `backdrop-blur-md`: Memberikan efek blur/kabur pada objek di belakang elemen tersebut.
+- `shadow-xl`, `border-white/20`: Untuk memberi garis tegas pinggiran efek kaca.
+
+Semua view Blade dipisah menjadi komponen layout (di dalam folder `resources/views/layouts/`):
+- `app.blade.php`: Kerangka utama (mengandung Sidebar dan konten utama).
+- `sidebar.blade.php`: Navigasi samping.
+
+
+----------------------------------------------------------------
+6. PERTANYAAN YANG SERING MUNCUL SAAT TES/SIDANG
+----------------------------------------------------------------
+Q: "Bagaimana cara aplikasi membedakan Admin dan Kepala Desa?"
+A: "Di tabel `users` terdapat kolom `role`. Saat login, middleware akan membaca kolom tersebut. Jika rolenya 'admin', ia memiliki akses penuh. Jika 'viewer', sistem (melalui routes) hanya mengizinkan metode GET (melihat/membaca) dan memblokir fungsi simpan/hapus."
+
+Q: "Coba jelaskan alur bagaimana sebuah foto aset disimpan!"
+A: "Saat form dikirim, AssetController pada metode store()/update() akan mengecek apakah ada file. Jika ada, file akan dienkripsi namanya dan disimpan ke dalam sistem penyimpanan (Storage) di direktori `public/assets`. Nama file path-nya akan disimpan ke kolom `photo` di database."
+
+Q: "Apa gunanya `Asset::with('category')`?"
+A: "Itu adalah fitur Eager Loading di Laravel. Jika tidak menggunakan ini, Laravel akan melakukan query database satu persatu untuk setiap baris aset demi mencari nama kategorinya (disebut N+1 Problem). Dengan `with`, Laravel hanya butuh 2 query saja, membuat aplikasi jauh lebih cepat."
+
+Q: "Kenapa aplikasi ini bisa di-deploy di Vercel padahal Vercel itu untuk Frontend?"
+A: "Kita menggunakan ekstensi pihak ketiga (vercel-php). Kita membuat file `api/index.php` yang berfungsi sebagai jembatan yang merutekan (routing) permintaan serverless Vercel langsung ke `public/index.php` milik Laravel."
+
+================================================================
+Semoga panduan ini membantu Anda lulus tes! Good luck!

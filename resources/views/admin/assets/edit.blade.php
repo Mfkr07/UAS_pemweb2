@@ -81,7 +81,11 @@
                             <label for="photo" class="block font-medium text-sm text-gray-700">Foto Aset</label>
                             @if($asset->photo_url)
                                 <div class="mt-2 mb-4">
-                                    <img src="{{ Storage::url($asset->photo_url) }}" alt="Current Photo" class="w-32 h-32 rounded-lg object-cover border shadow-sm">
+                                    @if(Str::startsWith($asset->photo_url, 'data:image'))
+                                        <img src="{{ $asset->photo_url }}" alt="Current Photo" class="w-32 h-32 rounded-lg object-cover border shadow-sm">
+                                    @else
+                                        <img src="{{ Storage::url($asset->photo_url) }}" alt="Current Photo" class="w-32 h-32 rounded-lg object-cover border shadow-sm">
+                                    @endif
                                     <p class="text-xs text-gray-500 mt-1">Foto saat ini</p>
                                 </div>
                             @endif

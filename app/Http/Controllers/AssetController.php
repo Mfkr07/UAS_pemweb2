@@ -42,8 +42,9 @@ class AssetController extends Controller
         ]);
 
         if ($request->hasFile('photo')) {
-            $path = $request->file('photo')->store('assets', 'public');
-            $validated['photo_url'] = $path;
+            $file = $request->file('photo');
+            $base64 = 'data:image/' . $file->extension() . ';base64,' . base64_encode(file_get_contents($file));
+            $validated['photo_url'] = $base64;
         }
 
         Asset::create($validated);
@@ -78,12 +79,9 @@ class AssetController extends Controller
         ]);
 
         if ($request->hasFile('photo')) {
-            // Delete old photo
-            if ($asset->photo_url) {
-                Storage::disk('public')->delete($asset->photo_url);
-            }
-            $path = $request->file('photo')->store('assets', 'public');
-            $validated['photo_url'] = $path;
+            $file = $request->file('photo');
+            $base64 = 'data:image/' . $file->extension() . ';base64,' . base64_encode(file_get_contents($file));
+            $validated['photo_url'] = $base64;
         }
 
         $asset->update($validated);
@@ -93,9 +91,7 @@ class AssetController extends Controller
 
     public function destroy(Asset $asset)
     {
-        if ($asset->photo_url) {
-            Storage::disk('public')->delete($asset->photo_url);
-        }
+        // No need to delete file from disk since it's stored as base64 in the database
         
         $asset->delete();
 

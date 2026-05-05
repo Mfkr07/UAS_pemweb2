@@ -22,7 +22,11 @@
                 <div class="md:col-span-1 space-y-6">
                     <div class="glass overflow-hidden rounded-2xl p-6">
                         @if($asset->photo_url)
-                            <img src="{{ Storage::url($asset->photo_url) }}" alt="{{ $asset->name }}" class="w-full h-48 object-cover rounded-xl shadow-sm mb-6">
+                            @if(Str::startsWith($asset->photo_url, 'data:image'))
+                                <img src="{{ $asset->photo_url }}" alt="{{ $asset->name }}" class="w-full h-48 object-cover rounded-xl shadow-sm mb-6">
+                            @else
+                                <img src="{{ Storage::url($asset->photo_url) }}" alt="{{ $asset->name }}" class="w-full h-48 object-cover rounded-xl shadow-sm mb-6">
+                            @endif
                         @else
                             <div class="w-full h-48 bg-gray-200 rounded-xl flex items-center justify-center text-gray-400 mb-6">
                                 <svg class="w-12 h-12" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"></path></svg>

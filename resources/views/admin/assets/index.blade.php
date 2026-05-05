@@ -47,7 +47,11 @@
                                 <tr class="hover:bg-white/50 transition duration-150">
                                     <td class="p-4">
                                         @if($asset->photo_url)
-                                            <img src="{{ Storage::url($asset->photo_url) }}" alt="{{ $asset->name }}" class="w-12 h-12 rounded-lg object-cover shadow-sm">
+                                            @if(Str::startsWith($asset->photo_url, 'data:image'))
+                                                <img src="{{ $asset->photo_url }}" alt="{{ $asset->name }}" class="w-12 h-12 rounded-lg object-cover shadow-sm">
+                                            @else
+                                                <img src="{{ Storage::url($asset->photo_url) }}" alt="{{ $asset->name }}" class="w-12 h-12 rounded-lg object-cover shadow-sm">
+                                            @endif
                                         @else
                                             <div class="w-12 h-12 bg-gray-200 rounded-lg flex items-center justify-center text-gray-400">
                                                 <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"></path></svg>
