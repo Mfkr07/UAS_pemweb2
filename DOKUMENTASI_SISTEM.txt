@@ -307,7 +307,7 @@ Langkah deployment:
 
   [ ] Penambahan fitur pencarian/search di halaman index aset dan pemeliharaan
 
-  [ ] Ekspor laporan ke PDF atau Excel (menggunakan DomPDF / Maatwebsite Excel)
+  [ ] Ekspor laporan ke Excel (Maatwebsite Excel)
 
   [ ] Notifikasi email / alert ketika aset berstatus "Rusak Berat"
 
