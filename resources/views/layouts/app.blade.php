@@ -16,7 +16,7 @@
         @vite(['resources/css/app.css', 'resources/js/app.js'])
     </head>
     <body class="font-sans antialiased bg-transparent transition-colors duration-300">
-        <div class="flex h-screen overflow-hidden bg-gray-100 dark:bg-gray-900" x-data="{ sidebarOpen: false }">
+        <div class="flex h-screen overflow-hidden bg-gray-100" x-data="{ sidebarOpen: false }">
             
             <!-- Sidebar -->
             @include('layouts.sidebar')
