@@ -82,7 +82,7 @@
                         <div class="flex justify-between items-center mb-6">
                             <h3 class="text-lg font-bold text-gray-800">Riwayat Pemeliharaan</h3>
                             @if(auth()->user()->role === 'admin')
-                                <a href="#" class="text-sm bg-indigo-50 hover:bg-indigo-100 text-indigo-700 px-3 py-1.5 rounded-lg font-medium transition">
+                                <a href="{{ route('admin.maintenance.create', ['asset_id' => $asset->id]) }}" class="text-sm bg-indigo-50 hover:bg-indigo-100 text-indigo-700 px-3 py-1.5 rounded-lg font-medium transition">
                                     + Catat Pemeliharaan
                                 </a>
                             @endif
